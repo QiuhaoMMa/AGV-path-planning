@@ -77,13 +77,15 @@ classdef RRTBase < handle & matlab.mixin.Copyable
                 end
             end
         end
-        
-        
+
+
+
+
         function children_indices = getChildren(obj, node)
             % Instead of iterating, use logical indexing to find all children at once
             children_indices = find([obj.nodes.parent_index] == node.index);
         end
-        
+
         
         function path_nodes = reconstructPath(obj, varargin)
             if nargin == 1

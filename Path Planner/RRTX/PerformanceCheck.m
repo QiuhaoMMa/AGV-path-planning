@@ -1,18 +1,8 @@
-clear all;clc;close all
+clear all; clc;
 
-scene_id=13;
-plotting=1;
-environment=createScene(scene_id);
-rrt= RRTP(environment,'memory_allocation',10,'occupancy_pdf_resolution',1,'steering_resolution',0.1);
-goal_reached=rrt.solve(plotting);
-
-%%
-clear all; clc; close all;
-
-scene_ids = [1, 2, 3, 4, 5, 6, 7, 8];  % List of 8 scene IDs
+scene_ids = [1, 2, 3, 4, 5, 6, 7, 8];  
 plotting = 0;   
-num_iterations = 100;
-
+num_iterations = 3;
 
 for s = 1:length(scene_ids)
     scene_id = scene_ids(s);
@@ -22,14 +12,14 @@ for s = 1:length(scene_ids)
     
     for i = 1:num_iterations
         environment = createScene(scene_id);
-        rrtp = RRTP(environment, 'memory_allocation', 10, 'occupancy_pdf_resolution', 1, 'steering_resolution', 0.1);
+        informed_rrt_star = InformedRRTStar(environment);
 
         tic;
-        goal_reached = rrtp.solve(plotting);
+        goal_reached = informed_rrt_star.solve(plotting);
         times(i) = toc;
 
         if goal_reached
-            path_lengths(i) = rrtp.getPathLength(); 
+            path_lengths(i) = informed_rrt_star.getPathLength();
         else
             path_lengths(i) = NaN;
         end
@@ -37,6 +27,7 @@ for s = 1:length(scene_ids)
         fprintf('Scene %d - Iteration %d completed. Time: %.2f seconds, Path Length: %.2f\n', scene_id, i, times(i), path_lengths(i));
     end
 
+    % Calculate average and standard deviation
     average_time = mean(times);
     std_time = std(times);
 
@@ -46,12 +37,12 @@ for s = 1:length(scene_ids)
     fprintf('Scene %d - Average Time: %.2f seconds\n', scene_id, average_time);
     fprintf('Scene %d - Average Path Length: %.2f units\n', scene_id, average_path_length);
 
-    mysim.rrtp(s).time = times;
-    mysim.rrtp(s).pathlength = path_lengths;
-    mysim.rrtp(s).avgtime = average_time;
-    mysim.rrtp(s).avgpathlength = average_path_length;
-    mysim.rrtp(s).stdtime = std_time;
-    mysim.rrtp(s).stdpathlength = std_path_length;
+    % Store results in the mysim structure for each scene
+    mysim.informedrrtstar(s).time = times;
+    mysim.informedrrtstar(s).pathlength = path_lengths;
+    mysim.informedrrtstar(s).avgtime = average_time;
+    mysim.informedrrtstar(s).avgpathlength = average_path_length;
+    mysim.informedrrtstar(s).stdtime = std_time;
+    mysim.informedrrtstar(s).stdpathlength = std_path_length;
 end
 
-save('mysim_rrtp.mat', 'mysim');

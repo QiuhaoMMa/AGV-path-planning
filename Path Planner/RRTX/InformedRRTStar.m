@@ -2,15 +2,26 @@ classdef InformedRRTStar < RRTS
     properties
         cMax = inf; % Initial c_max (used in informed sampling)
         Xsoln = []; % Set of solution nodes
-        goalThreshold = 0.5; % Threshold distance to define if node is in goal region
-        xGoal; % Goal position
     end
 
     methods (Access = public)
-        % Constructor to initialize InformedRRTStar with environment and goal position
-        function obj = InformedRRTStar(environment, goal, varargin)
+        % Constructor to initialize InformedRRTStar with the environment
+        function obj = InformedRRTStar(environment, varargin)
             obj@RRTS(environment, varargin{:});
-            obj.xGoal = goal;  % Set the goal position
+        end
+        % Method to retrieve the final path from start to goal
+        function final_path = getFinalPath(obj)
+            % Initialize an empty array to store the path
+            final_path = [];
+
+            % Start from the goal node and trace back to the start node
+            current_node = obj.nodes(end); % Assuming the goal node is the last one added
+            while current_node.parent_index ~= 0
+                final_path = [current_node.position; final_path]; % Prepend the current node position to the path
+                current_node = obj.nodes(current_node.parent_index); % Move to the parent node
+            end
+            % Add the start node to the path
+            final_path = [obj.nodes(1).position; final_path];
         end
     end
 
@@ -27,9 +38,11 @@ classdef InformedRRTStar < RRTS
 
         % Informed sampling method based on the algorithm provided
         function xRand = informedSample(obj, cMax)
-            cMin = norm(obj.xGoal - obj.xStart);
-            xCenter = (obj.xStart + obj.xGoal) / 2;
-            C = obj.rotationToWorldFrame(obj.xStart, obj.xGoal);
+            xStart = obj.environment.start;  % Get start position from environment
+            xGoal = obj.environment.goal;    % Get goal position from environment
+            cMin = norm(xGoal - xStart);
+            xCenter = (xStart + xGoal) / 2;
+            C = obj.rotationToWorldFrame(xStart, xGoal);
             r1 = cMax / 2;
             r = [r1; sqrt(r1^2 - cMin^2) / 2]; % Radius for ellipsoid
 
@@ -55,7 +68,7 @@ classdef InformedRRTStar < RRTS
 
         % Sample random point in a unit n-ball
         function xBall = sampleUnitNBall(obj)
-            n = length(obj.xStart); % Dimensionality
+            n = length(obj.environment.start); % Dimensionality based on environment's start
             xBall = randn(n, 1); % Random Gaussian vector
             xBall = xBall / norm(xBall) * rand^(1/n); % Normalize and scale to unit ball
         end
@@ -75,9 +88,16 @@ classdef InformedRRTStar < RRTS
         % Method to check if a node is within the goal region
         function inGoal = inGoalRegion(obj, position)
             % Calculate the distance from the node's position to the goal
-            distanceToGoal = norm(position - obj.xGoal);
-            % Check if it's within the goal threshold
-            inGoal = distanceToGoal <= obj.goalThreshold;
+            xGoal = obj.environment.goal; % Get goal position from environment
+            distanceToGoal = norm(position - xGoal);
+            
+            % Check if it's within the goal threshold (inherited from RRTBase)
+            if obj.goal_threshold > 0
+                inGoal = distanceToGoal <= obj.goal_threshold;
+            else
+                % Handle the case where goal_threshold is -1 or invalid
+                inGoal = distanceToGoal == 0; % Direct hit at goal, or adjust as needed
+            end
         end
     end
 end

@@ -1,9 +1,16 @@
 clear all; clc; close all;
 
-num_test = 10;  % Number of test runs per scene
-scene_ids = 1:5;  % Scene IDs to run
-methods = {@RRTB,@RRTP,@RRT, @RRTS};  % RRT methods
-methods_names = {'RRTB', 'RRTP', 'RRT', 'RRTS'};
+num_test = 100;  % Number of test runs per scene
+scene_ids = 1:33;  % Scene IDs to run
+% methods = {@RRTB,@RRTP,@RRT, @RRTS};  % RRT methods
+% methods_names = {'RRTB', 'RRTP', 'RRT', 'RRTS'};
+
+methods = {@RRT, @RRTS,@InformedRRTStar,@RRTSmart,@LazyRRT};  % RRT methods
+methods_names = {'RRT', 'RRTS','InformedRRTStar','RRTSmart','LazyRRT'};
+
+
+% methods = {@RRT, @RRTS,@InformedRRTStar,@RRTSmart,@RRTP,@RRTConnect,@LazyRRT};  % RRT methods
+% methods_names = {'RRT', 'RRTS','InformedRRTStar','RRTSmart','RRTP','RRTConnect','LazyRRT'};
 
 plotting = 0;  % Plot interval (set to 1 to enable plotting)
 

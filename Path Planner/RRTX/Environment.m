@@ -1,4 +1,4 @@
-classdef Environment <  matlab.mixin.Copyable
+classdef Environment < matlab.mixin.Copyable
     properties
         goal           % Goal position
         start          % Start position
@@ -9,6 +9,7 @@ classdef Environment <  matlab.mixin.Copyable
         max_distance2goal = inf
         boundary_corners % Precomputed corners of the boundary
         axis_handle
+        add_image = false % Option to add image
     end
     
     methods
@@ -21,7 +22,7 @@ classdef Environment <  matlab.mixin.Copyable
             obj.boundary_corners = obj.computeBoundaryCorners();  % Precompute boundary corners
             obj.max_distance2goal = obj.getLongestDistance(obj.start);
             
-            % Handle optional arguments (e.g., resolution, obstacles)
+            % Handle optional arguments (e.g., resolution, obstacles, add_image)
             for i = 1:2:length(varargin)
                 key = varargin{i};
                 value = varargin{i+1};
@@ -83,7 +84,7 @@ classdef Environment <  matlab.mixin.Copyable
         end
         
         % Check if a point is within the goal threshold
-        function success = reachedGoal(obj, p,threshold)
+        function success = reachedGoal(obj, p, threshold)
             success = obj.distanceToGoal(p) < threshold;
         end
         
@@ -106,60 +107,47 @@ classdef Environment <  matlab.mixin.Copyable
         
         % Plot the environment (boundary, start, goal, obstacles)
         function h = plot(obj)
-
-
             obj.axis_handle = axes('Box', 'on', ...
                          'XMinorTick', 'on', 'YMinorTick', 'on', ...   % Minor ticks for better visualization
                          'TickDir', 'in', ...               % Ticks directed inward
                          'XAxisLocation', 'bottom', ...     % Keep bottom tick labels
                          'YAxisLocation', 'left', ...       % Keep left tick labels
                          'TickLength', [0.02 0.02], ...     % Set tick length
-                         'XTickLabelMode', 'auto', ...      % Enable auto tick labels on bottom
-                         'YTickLabelMode', 'auto');         % Enable auto tick labels on left
+                         'XTickLabelMode', 'manual', ...      % Enable auto tick labels on bottom
+                         'YTickLabelMode', 'manual');         % Enable auto tick labels on left
             hold all;
             % Turn on the grid and set it to light gray
-            grid(obj.axis_handle, 'on');  % Turn on the grid
+            grid(obj.axis_handle, 'off');  % Turn on the grid
             set(obj.axis_handle, 'GridColor', [0.8, 0.8, 0.8], ...  % Set grid color to light gray
                 'GridAlpha', 1);                 % Set grid transparency (light grid)
 
             % Ensure grid is applied to both major and minor ticks
             set(obj.axis_handle, 'MinorGridColor', [0.8, 0.8, 0.8], ...  % Light gray for minor grid
                 'MinorGridAlpha', 1);                 % Lighter grid for minor ticks
-            grid minor;  % Turn on minor grid as well
+            grid minor;  % Turn on minor grid as well\
+            grid off;
 
-            
             plot(obj.axis_handle,obj.start(1), obj.start(2), 'gs', 'MarkerSize', 10, 'LineWidth', 2); % Start point
             plot(obj.axis_handle,obj.goal(1), obj.goal(2), 'rp', 'MarkerSize', 10, 'LineWidth', 2); % Goal point
            
-            text(obj.start(1), obj.start(2)-1.5, 'Start', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 10,'Color','g','FontWeight','bold');
-            text(obj.goal(1), obj.goal(2)-1.5, 'Goal', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 10,'Color','r','FontWeight','bold');
-            
-            img = imread('ADROCO.png'); % Replace with your image file
-% Convert the image to double for blending purposes
-img = im2double(img);
-
-% Define an alpha channel (same size as the image)
-% Set alpha value for transparency (1 = fully opaque, 0 = fully transparent)
-alpha = 0.3; % Change this value to adjust opacity (0.0 - 1.0)
-
-% Create new axes for the image in the top-left corner
-ax_image = axes('Position', [0.14 0.82 0.4 0.1]); % Adjust position and size as needed
-
-% Display the image with the specified opacity
-image('CData', flipud((img)), 'AlphaData', alpha, 'Parent', ax_image);
-
-% Remove axes ticks for the image
-axis(ax_image, 'off');
-
-% Bring the main plot axes to the front
-set(gcf, 'CurrentAxes', obj.axis_handle);
+            % Optionally add the image if `add_image` is true
+            if obj.add_image
+                img = imread('ADROCO.png'); % Replace with your image file
+                img = im2double(img);
+                alpha = 0.3; % Change this value to adjust opacity (0.0 - 1.0)
+                ax_image = axes('Position', [0.14 0.82 0.4 0.1]); % Adjust position and size as needed
+                image('CData', flipud((img)), 'AlphaData', alpha, 'Parent', ax_image);
+                axis(ax_image, 'off');
+                set(gcf, 'CurrentAxes', obj.axis_handle);
+            end
 
             h = [];
             for i = 1:length(obj.obstacles)
                 h(i) = obj.obstacles(i).plot; % Plot each obstacle
             end
             axis_limit = obj.boundary';
-            axis(obj.axis_handle,axis_limit(:)');
+            axis(obj.axis_handle, axis_limit(:)');
+            
         end
     end
     
