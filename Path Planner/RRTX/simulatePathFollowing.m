@@ -1,7 +1,7 @@
 function simulatePathFollowing(waypoints)
 
     sampleTime = 0.05;
-    tVec = 0:sampleTime:80;
+    tVec = 0:sampleTime:20;
     initPose = [waypoints(1,:)'; 0];
 
    
@@ -17,7 +17,7 @@ function simulatePathFollowing(waypoints)
 
   
     goalPoint = waypoints(end,:)';
-    goalRadius = 0.2;
+    goalRadius = 1;
 
     
     [~, unicyclePose] = ode45(@(t,y)derivative(unicycle,y,myMobileRobotController(controller1,y,goalPoint,goalRadius)),tVec,initPose);

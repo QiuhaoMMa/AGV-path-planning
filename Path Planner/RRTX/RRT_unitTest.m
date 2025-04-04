@@ -1,11 +1,11 @@
 scene_id = 33;
-plotting = 0;
+plotting = 1;
 environment = createScene(scene_id, false); 
 rrt = RRT(environment);
 goal_reached = rrt.solve(plotting);
 
-temp.path = ['C:\Users\97895\Desktop\paper scenes\' num2str(scene_id) '.png'];
-saveas(gcf, temp.path);
+% temp.path = ['C:\Users\97895\Desktop\paper scenes\' num2str(scene_id) '.png'];
+% saveas(gcf, temp.path);
 
 
 
