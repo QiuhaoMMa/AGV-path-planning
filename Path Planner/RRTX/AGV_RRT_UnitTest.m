@@ -2,7 +2,7 @@ clc
 clear
 close all
 
-scene_id = 1;
+scene_id = 4;
 plotting = 1;
 environment = createScene(scene_id, false); 
 rrt = RRT(environment);
@@ -22,3 +22,4 @@ environment = createScene(scene_id, false);
 rrt = RRT(environment);
 hold on
 simulatePathFollowing(maps{1});
+
