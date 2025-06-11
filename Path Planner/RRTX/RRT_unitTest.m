@@ -1,20 +1,20 @@
 scene_id = 33;
 plotting = 1;
 environment = createScene(scene_id, false); 
-rrt = RRT(environment);
-goal_reached = rrt.solve(plotting);
+% rrt = RRT(environment);
+% goal_reached = rrt.solve(plotting);
 
 % temp.path = ['C:\Users\97895\Desktop\paper scenes\' num2str(scene_id) '.png'];
 % saveas(gcf, temp.path);
 
-
+RRTBase(environment, varargin{:});
 
 %%
 clear all; clc;
 
 scene_ids = [1, 2, 3, 4, 5, 6, 7, 8];  
 plotting = 0;   
-num_iterations = 100;
+num_iterations = 1;
 
 for s = 1:length(scene_ids)
     scene_id = scene_ids(s);

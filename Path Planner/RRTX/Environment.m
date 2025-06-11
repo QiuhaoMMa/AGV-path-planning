@@ -89,21 +89,54 @@ classdef Environment < matlab.mixin.Copyable
         end
         
         % Check if a line (from node1 to node2) collides with any obstacles
-        function is_coll = checkCollision(obj, node1, node2)
-            if ~obj.isInSpaceBoundary(node1) || ~obj.isInSpaceBoundary(node2)
-                is_coll = true;  % Out of boundary is considered a collision
+ % Check if a line (from node1 to node2) or a circle collides with any obstacles
+function is_coll = checkCollision(obj, node1, node2_or_circle)
+    % Case 1: Line segment collision detection (Original functionality)
+    if isvector(node1) && isvector(node2_or_circle)
+        if ~obj.isInSpaceBoundary(node1) || ~obj.isInSpaceBoundary(node2_or_circle)
+            is_coll = true;  % Out of boundary is considered a collision
+            return;
+        end
+        
+        % Check collision only with nearby obstacles
+        for i = 1:length(obj.obstacles)
+            if obj.obstacles(i).checkLineCollision(node1, node2_or_circle)
+                is_coll = true;
                 return;
             end
-            
-            % Check collision only with nearby obstacles
-            for i = 1:length(obj.obstacles)
-                if obj.obstacles(i).checkLineCollision(node1, node2)
-                    is_coll = true;
-                    return;
-                end
-            end
-            is_coll = false;
         end
+        is_coll = false;
+    
+    % Case 2: Circle-based collision detection (New functionality)
+    elseif isstruct(node2_or_circle)
+        % Assuming the input is a struct with fields 'center' and 'radius'
+        circle = node2_or_circle;  
+        
+        % Check if the circle center is within the environment boundary
+        if ~obj.isInSpaceBoundary(circle.center)
+            is_coll = true;
+            return;
+        end
+        
+        % Check collision with all obstacles
+        for i = 1:length(obj.obstacles)
+            if obj.obstacles(i).checkCircleCollision(circle.center, circle.radius)
+                is_coll = true;
+                return;
+            end
+        end
+        
+        % No collision detected
+        is_coll = false;
+        
+    else
+        error('Invalid input type for checkCollision. Provide either two points or a circle struct.');
+    end
+end
+
+
+
+
         
         % Plot the environment (boundary, start, goal, obstacles)
         function h = plot(obj)

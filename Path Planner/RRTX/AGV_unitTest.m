@@ -1,11 +1,12 @@
 clc
 clear
-close all
+% close all
 
-scene_id = 21;
+scene_id = 1;
 plotting = 1;
 environment = createScene(scene_id, false); 
 rrt = RRT(environment);
+
 goal_reached = rrt.solve(plotting);
 
 
@@ -15,7 +16,11 @@ disp(positions);
 
 maps = {positions};
 
-for i = 1:length(maps)
-    disp(['Simulating map ', num2str(i)])
-    simulatePathFollowing(maps{i});
-end
+
+figure
+environment = createScene(scene_id, false); 
+rrt = RRT(environment);
+hold on
+simulatePathFollowing(maps{1});
+
+
