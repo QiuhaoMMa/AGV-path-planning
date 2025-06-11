@@ -58,10 +58,19 @@ function simulatePathFollowing(waypoints)
     %}
 
     diffDriveTranslations = [diffDrivePose(:,1:2) zeros(length(diffDrivePose),1)];
+  
     diffDriveRot = axang2quat([repmat([0 0 1], length(diffDrivePose), 1), diffDrivePose(:,3)]);
 
+
+
+
+
+
+
     % Plot result
-    figure
+    % figure
+
+    
     plot(waypoints(:,1), waypoints(:,2), "kx-", MarkerSize=20);  % Waypoints
     hold on
 
@@ -82,3 +91,7 @@ function simulatePathFollowing(waypoints)
     disp('Using latest simulatePathFollowing...');
 
 end
+
+
+
+
