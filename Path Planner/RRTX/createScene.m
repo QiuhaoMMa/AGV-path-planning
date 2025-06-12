@@ -134,6 +134,24 @@ function environment = createScene(scene_id, add_image_option)
         case 33
             start = [2, 2];
             goal = [28, 28];
+        case 34
+            start = [2, 2];
+            goal = [28, 28];
+        case 35
+            start = [2, 2];
+            goal = [28, 28];
+        case 36
+            start = [2, 2];
+            goal = [28, 28];
+        case 37
+            start = [2, 2];
+            goal = [28, 28];
+        case 38
+            start = [2, 2];
+            goal = [28, 28];
+        case 39
+            start = [2, 2];
+            goal = [28, 28];
     end
 
     environment = Environment(start, goal, boundary, 'obstacles', obstacles, 'resolution', 2, 'add_image', add_image_option);
@@ -361,7 +379,77 @@ switch scene_id
         obstacles_vertices{6} = [26 22 24; 29 29 27];
         obstacles_vertices{7} = [27 29 29; 24 26 22];
 
+% manufacturing cell layout
+    case 34
+        obstacles_vertices{1} = [18 19 19 18; 29 29 23 23];
+        obstacles_vertices{2} = [23 29 29 23; 24 24 23 23];
+        obstacles_vertices{3} = [1 7 7 1; 7 7 6 6];
+        obstacles_vertices{4} = [11 12 12 11; 7 7 1 1];
+        obstacles_vertices{5} = [8 24 24 8; 16 16 15 15];
+
+    case 35
+        obstacles_vertices{1} = [18 19 19 18; 29 29 23 23];
+        obstacles_vertices{2} = [23 29 29 23; 24 24 23 23];
+        obstacles_vertices{3} = [1 7 7 1; 7 7 6 6];
+        obstacles_vertices{4} = [11 12 12 11; 7 7 1 1];
+        obstacles_vertices{5} = [8 24 24 8; 16 16 15 15];
+        obstacles_vertices{6} = [15 16 16 15; 19 19 11 11];
+        obstacles_vertices{7} = [8 9 9 8; 29 29 23 23];
+        obstacles_vertices{8} = [13 19 19 13; 24 24 23 23];
+        obstacles_vertices{9} = [11 17 17 11; 7 7 6 6];
+        obstacles_vertices{10} = [21 22 22 21; 7 7 1 1];
+
+    case 36
+        obstacles_vertices{1} = [18 19 19 18; 29 29 23 23];
+        obstacles_vertices{2} = [23 29 29 23; 24 24 23 23];
+        obstacles_vertices{3} = [1 7 7 1; 7 7 6 6];
+        obstacles_vertices{4} = [11 12 12 11; 7 7 1 1];
+        obstacles_vertices{5} = [12 19 19 12; 16 16 15 15];
+        obstacles_vertices{6} = [15 16 16 15; 19 19 11 11];
+        obstacles_vertices{7} = [8 9 9 8; 29 29 23 23];
+        obstacles_vertices{8} = [13 19 19 13; 24 24 23 23];
+        obstacles_vertices{9} = [11 17 17 11; 7 7 6 6];
+        obstacles_vertices{10} = [21 22 22 21; 7 7 1 1];
+        obstacles_vertices{11} = [1 9 9 8 8 1; 19 19 11 11 18 18];
+        obstacles_vertices{12} = [21 22 22 29 29 21; 19 19 12 12 11 11];
+
+
+        % amazon warehouse layout
+    case 37
+        obstacles_vertices{1} = [9 21 21 9; 29 29 22 22];
+        obstacles_vertices{2} = [11 12 12 11; 18 18 6 6];
+        obstacles_vertices{3} = [18 19 19 18; 18 18 6 6];
+
+    case 38
+        obstacles_vertices{1} = [9 21 21 9; 29 29 22 22];
+        obstacles_vertices{2} = [11 12 12 11; 18 18 6 6];
+        obstacles_vertices{3} = [18 19 19 18; 18 18 6 6];
+        obstacles_vertices{4} = [1 6 6 1; 17 17 16 16];
+        obstacles_vertices{5} = [1 6 6 1; 8 8 7 7];
+        obstacles_vertices{6} = [24 29 29 24; 17 17 16 16];
+        obstacles_vertices{7} = [24 29 29 24; 8 8 7 7];
+
+    case 39
+        obstacles_vertices{1} = [9 21 21 9; 29 29 22 22];
+        obstacles_vertices{2} = [9 10 10 9; 18 18 6 6];
+        obstacles_vertices{3} = [20 21 21 20; 18 18 6 6];
+        obstacles_vertices{4} = [1 6 6 1; 17 17 16 16];
+        obstacles_vertices{5} = [1 6 6 1; 8 8 7 7];
+        obstacles_vertices{6} = [24 29 29 24; 17 17 16 16];
+        obstacles_vertices{7} = [24 29 29 24; 8 8 7 7];
+        obstacles_vertices{8} = [4 5 5 4; 27 27 20 20];
+        obstacles_vertices{9} = [14 16 16 14; 18 18 6 6];
+        obstacles_vertices{10} = [25 26 26 25; 27 27 20 20];
+        obstacles_vertices{11} = [1 6 6 1; 13 13 11 11];
+        obstacles_vertices{12} = [24 29 29 24; 13 13 11 11];
+        
+
 end
+
+    
+
+
+
 
 
 
