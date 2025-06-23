@@ -1,97 +1,52 @@
-function simulatePathFollowing(waypoints)
+function [final_position, total_time] = simulatePathFollowing(waypoints, start_position, sampleTime)
 
-    sampleTime = 0.05;
+    % Defaults
+    if nargin < 2
+        start_position = waypoints(1, :);
+    end
+    if nargin < 3
+        sampleTime = 0.05;
+    end
+
     tVec = 0:sampleTime:40;
-    initPose = [waypoints(1,:)'; 0];  % Initial pose [x; y; theta]
 
-    %{
-    % Initialize Unicycle model
-    unicycle = unicycleKinematics(VehicleInputs="VehicleSpeedHeadingRate");
+    % Initial pose: [x; y; theta]
+    initPose = [start_position(1); start_position(2); 0];
 
-    % Initialize Bicycle model
-    bicycle = bicycleKinematics(VehicleInputs="VehicleSpeedHeadingRate", ...
-                                 MaxSteeringAngle=pi/8);
-    %}
-
-    % Initialize Differential Drive model
+    % Differential drive robot
     diffDrive = differentialDriveKinematics(VehicleInputs="VehicleSpeedHeadingRate");
     diffDrive.WheelSpeedRange = [-10 10]*2*pi;
 
-    % Pure Pursuit Controllers
-    %{
-    controller1 = controllerPurePursuit(Waypoints=waypoints, ...
+    % Pure Pursuit controller
+    controller = controllerPurePursuit(Waypoints=waypoints, ...
         DesiredLinearVelocity=3, MaxAngularVelocity=3*pi);
 
-    controller2 = controllerPurePursuit(Waypoints=waypoints, ...
-        DesiredLinearVelocity=3, MaxAngularVelocity=3*pi);
-    %}
-
-    controller3 = controllerPurePursuit(Waypoints=waypoints, ...
-        DesiredLinearVelocity=3, MaxAngularVelocity=3*pi);
-
-    % Goal configuration
+    % Goal
     goalPoint = waypoints(end,:)';
     goalRadius = 1;
 
-    % ODE Simulation
-    %{
-    [~, unicyclePose] = ode45(@(t,y)derivative(unicycle, y, ...
-        myMobileRobotController(controller1, y, goalPoint, goalRadius)), ...
-        tVec, initPose);
-
-    [~, bicyclePose] = ode45(@(t,y)derivative(bicycle, y, ...
-        myMobileRobotController(controller2, y, goalPoint, goalRadius)), ...
-        tVec, initPose);
-    %}
-
+    % Simulate with ode45
     [~, diffDrivePose] = ode45(@(t,y)derivative(diffDrive, y, ...
-        myMobileRobotController(controller3, y, goalPoint, goalRadius)), ...
+        myMobileRobotController(controller, y, goalPoint, goalRadius)), ...
         tVec, initPose);
 
-    % Prepare visualization
-    %{
-    unicycleTranslations = [unicyclePose(:,1:2) zeros(length(unicyclePose),1)];
-    unicycleRot = axang2quat([repmat([0 0 1], length(unicyclePose), 1), unicyclePose(:,3)]);
+    % Visualization (every 10th frame)
+    indices = 1:10:size(diffDrivePose,1);
+    diffDriveTranslations = [diffDrivePose(indices, 1:2), zeros(length(indices),1)];
+    diffDriveRot = axang2quat([repmat([0 0 1], length(indices), 1), diffDrivePose(indices, 3)]);
 
-    bicycleTranslations = [bicyclePose(:,1:2) zeros(length(bicyclePose),1)];
-    bicycleRot = axang2quat([repmat([0 0 1], length(bicyclePose), 1), bicyclePose(:,3)]);
-    %}
-
-    diffDriveTranslations = [diffDrivePose(:,1:2) zeros(length(diffDrivePose),1)];
-  
-    diffDriveRot = axang2quat([repmat([0 0 1], length(diffDrivePose), 1), diffDrivePose(:,3)]);
-
-
-
-
-
-
-
-    % Plot result
-    % figure
-
-    
-    plot(waypoints(:,1), waypoints(:,2), "kx-", MarkerSize=20);  % Waypoints
-    hold on
-
-    %{
-    plotTransforms(unicycleTranslations(1:10:end,:), unicycleRot(1:10:end,:), ...
-        MeshFilePath="groundvehicle.stl", MeshColor="r");
-
-    plotTransforms(bicycleTranslations(1:10:end,:), bicycleRot(1:10:end,:), ...
-        MeshFilePath="groundvehicle.stl", MeshColor="b");
-    %}
-
-    plotTransforms(diffDriveTranslations(1:10:end,:), diffDriveRot(1:10:end,:), ...
+    plot(waypoints(:,1), waypoints(:,2), "kx-", MarkerSize=20);
+    hold on;
+    plotTransforms(diffDriveTranslations, diffDriveRot, ...
         MeshFilePath="groundvehicle.stl", MeshColor="g");
 
     axis equal
     view(0,90)
-    title('Trajectory - Differential Drive Only')
-    disp('Using latest simulatePathFollowing...');
+    title('Trajectory - Differential Drive Only');
 
+    % Return updated position & time (only 4% of the path forward)
+    step_index = round(length(diffDrivePose) * 0.04);
+    step_index = max(2, min(step_index, length(diffDrivePose)));  % ensure within bounds
+    final_position = diffDrivePose(step_index, 1:2);
+    total_time = (step_index - 1) * sampleTime;
 end
-
-
-
-

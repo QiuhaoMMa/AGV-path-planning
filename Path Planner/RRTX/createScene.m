@@ -1,16 +1,45 @@
-function environment = createScene(scene_id, add_image_option)
+function environment = createScene(scene_id, add_image_option, dynamic_step)
     if nargin < 2
         add_image_option = false;  
     end
+    if nargin < 3
+        dynamic_step = 0;  % default no movement if not provided
+    end
 
+    % Special case for dynamic obstacle map
+    if scene_id == 100
+        % Scene settings
+
+        xlim([0, 30]);   % 固定图像尺寸
+        ylim([0, 30]);
+        start = [2, 2];
+        goal = [26, 26];
+        boundary = [1 29; 1 29];
+        
+        % Create static obstacles (optional demo block)
+        obstacles = Obstacle.empty;
+        obstacles(1) = Obstacle('polygon', 'vertices', [10 14 14 10; 10 10 14 14]);
+
+        % Create moving square block (from left to right)
+        x_left = 1 + dynamic_step;  % moves 1 unit per step
+        y_bottom = 15;
+        square = [x_left x_left+2 x_left+2 x_left; y_bottom y_bottom y_bottom+2 y_bottom+2];
+        obstacles(end+1) = Obstacle('polygon', 'vertices', square);
+
+        % Build environment
+        environment = Environment(start, goal, boundary, ...
+            'obstacles', obstacles, ...
+            'resolution', 2, ...
+            'add_image', add_image_option);
+        return;
+    end
+
+    % All other static maps
     obstacles_vertices = generatingObstacles(scene_id);
-
-
     obstacles = Obstacle.empty;
     for i = 1:numel(obstacles_vertices)
         obstacles(i) = Obstacle('polygon', 'vertices', obstacles_vertices{i});
     end
-
 
     boundary = [1 29; 1 29];
     switch scene_id
@@ -152,6 +181,8 @@ function environment = createScene(scene_id, add_image_option)
         case 39
             start = [2, 2];
             goal = [28, 28];
+        otherwise
+            error('Invalid scene_id. Use 1–39 for static maps, or 100 for dynamic demo.');
     end
 
     environment = Environment(start, goal, boundary, 'obstacles', obstacles, 'resolution', 2, 'add_image', add_image_option);
