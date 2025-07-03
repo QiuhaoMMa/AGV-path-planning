@@ -6,26 +6,43 @@ function environment = createScene(scene_id, add_image_option, dynamic_step)
         dynamic_step = 0;  % default no movement if not provided
     end
 
-    % Special case for dynamic obstacle map
-    if scene_id == 100
-        % Scene settings
-
-        xlim([0, 30]);   % 固定图像尺寸
+    % === Special cases: dynamic obstacle maps ===
+    if scene_id == 100 || scene_id == 101 || scene_id == 102
+        % Fixed image size for all dynamic maps
+        xlim([0, 30]);
         ylim([0, 30]);
+    
+        % Basic scene setup
         start = [2, 2];
         goal = [26, 26];
         boundary = [1 29; 1 29];
-        
-        % Create static obstacles (optional demo block)
+    
+        % One static block (same for all)
         obstacles = Obstacle.empty;
         obstacles(1) = Obstacle('polygon', 'vertices', [10 14 14 10; 10 10 14 14]);
-
-        % Create moving square block (from left to right)
-        x_left = 1 + dynamic_step;  % moves 1 unit per step
-        y_bottom = 15;
-        square = [x_left x_left+2 x_left+2 x_left; y_bottom y_bottom y_bottom+2 y_bottom+2];
-        obstacles(end+1) = Obstacle('polygon', 'vertices', square);
-
+    
+        % Add first moving block (always present)
+        x1 = 1 + 2.5*dynamic_step;
+        y1 = 15;
+        square1 = [x1 x1+2 x1+2 x1; y1 y1 y1+2 y1+2];
+        obstacles(end+1) = Obstacle('polygon', 'vertices', square1);
+    
+        if scene_id >= 101
+            % Add second moving block for medium difficulty
+            x2 = 29 - 3*dynamic_step;
+            y2 = 8;
+            square2 = [x2 x2+2 x2+2 x2; y2 y2 y2+2 y2+2];
+            obstacles(end+1) = Obstacle('polygon', 'vertices', square2);
+        end
+    
+        if scene_id == 102
+            % Add third moving block for hard difficulty
+            x3 = 1 + 3*dynamic_step;
+            y3 = 21;
+            square3 = [x3 x3+2 x3+2 x3; y3 y3 y3+2 y3+2];
+            obstacles(end+1) = Obstacle('polygon', 'vertices', square3);
+        end
+    
         % Build environment
         environment = Environment(start, goal, boundary, ...
             'obstacles', obstacles, ...
