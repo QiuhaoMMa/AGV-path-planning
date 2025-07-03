@@ -2,49 +2,46 @@ clc;
 clear;
 close all;
 
-% === Parameters ===
-num_test = 3;                 % Trials per map
-scene_ids_static = 34:39;      % Static map IDs
-scene_ids_dynamic = 100:102;   % Dynamic map IDs
-plotting = 0;                  % 0 = disable tree plotting
+num_test = 10;               % Trials per map
+scene_ids_static = 34:39;    % Static maps
+scene_ids_dynamic = 100:102; % Dynamic maps
+plotting = 0;                % Disable tree plotting
 
+% === Methods to test ===
 methods = {@RRT, @RRTS, @InformedRRTStar, @RRTSmart, @LazyRRT};
 methods_names = {'RRT', 'RRTS', 'InformedRRTStar', 'RRTSmart', 'LazyRRT'};
-
-num_steps_dynamic = 10;        % Steps for dynamic obstacles
-sampleTime = 0.05;             % AGV simulation time step
 
 % === Initialize results ===
 results = struct();
 for m = 1:length(methods)
     method_name = methods_names{m};
-    results.(method_name).static.data = zeros(length(scene_ids_static), num_test, 2); % [time, path_length]
+    % Static: [time, path_length]
+    results.(method_name).static.data = zeros(length(scene_ids_static), num_test, 2);
     results.(method_name).static.success = zeros(length(scene_ids_static), num_test);
-    results.(method_name).dynamic.data = zeros(length(scene_ids_dynamic), num_test, 2); % [total_time, total_distance]
+
+    % Dynamic: [time, path_length, total_dynamic_steps]
+    results.(method_name).dynamic.data = zeros(length(scene_ids_dynamic), num_test, 2);
     results.(method_name).dynamic.success = zeros(length(scene_ids_dynamic), num_test);
 end
 
-% === Main benchmark loop ===
+num_steps_dynamic = 10;   % Dynamic frames per scene
+sampleTime = 0.05;        % AGV step time
+
+% === Test each method ===
 for m = 1:length(methods)
     method = methods{m};
     method_name = methods_names{m};
 
-    fprintf('\n==== [%s] ====\n', method_name);
+    fprintf('\n==== Testing %s ====\n', method_name);
 
-    % Static maps
+    % Static maps first
     for s = 1:length(scene_ids_static)
         scene_id = scene_ids_static(s);
         for i = 1:num_test
-            fprintf('Static | %s | Scene %d | Trial %d\n', method_name, scene_id, i);
-
+            fprintf('Static | Method: %s | Scene %d | Trial %d\n', method_name, scene_id, i);
             try
                 environment = createScene(scene_id, false);
-
-                % For static maps use default parameters
-                rrt = method(environment, ...
-                    'memory_allocation', 2000, ...
-                    'steering_resolution', 0.3);
-
+                rrt = method(environment);
                 goal_reached = rrt.solve(plotting);
 
                 if goal_reached
@@ -59,7 +56,7 @@ for m = 1:length(methods)
                 end
 
             catch ME
-                warning('Static | %s | Scene %d | Trial %d failed: %s', ...
+                warning('Static | Method: %s | Scene %d | Trial %d failed: %s', ...
                     method_name, scene_id, i, ME.message);
                 results.(method_name).static.data(s, i, :) = [NaN, NaN];
                 results.(method_name).static.success(s, i) = 0;
@@ -67,11 +64,11 @@ for m = 1:length(methods)
         end
     end
 
-    % Dynamic maps
+    % Then dynamic maps
     for s = 1:length(scene_ids_dynamic)
         scene_id = scene_ids_dynamic(s);
         for i = 1:num_test
-            fprintf('Dynamic | %s | Scene %d | Trial %d\n', method_name, scene_id, i);
+            fprintf('Dynamic | Method: %s | Scene %d | Trial %d\n', method_name, scene_id, i);
 
             try
                 initial_pose = [2, 2];
@@ -84,30 +81,30 @@ for m = 1:length(methods)
                     environment = createScene(scene_id, false, step);
                     environment.start = current_position;
 
+                    % Stop early if close
                     if norm(current_position - environment.goal) < 3
                         goal_reached_flag = true;
                         break;
                     end
 
-                    % For dynamic scenes use higher memory, higher resolution, with retry
                     rrt = method(environment, ...
-                        'memory_allocation', 5000, ...
-                        'steering_resolution', 0.1);
+                    'memory_allocation', 5000, ...
+                    'steering_resolution', 0.1);
 
                     max_retry = 3;
                     goal_reached = false;
-
+                    
                     for retry = 1:max_retry
-                        goal_reached = rrt.solve(plotting);
+                        goal_reached = rrt.solve(0);
                         if goal_reached
-                            break;
+                            break; % 成功跳出
                         end
                     end
+
 
                     if goal_reached
                         path_indices = rrt.reconstructPath();
                         positions = vertcat(rrt.nodes(path_indices).position);
-
                         [next_position, step_time] = simulatePathFollowing(positions, current_position, sampleTime);
                         step_distance = norm(next_position - current_position);
 
@@ -116,7 +113,7 @@ for m = 1:length(methods)
                         total_time = total_time + step_time;
 
                     else
-                        warning('Dynamic | %s | Scene %d | Trial %d failed at step %d.', ...
+                        warning('Dynamic | Method: %s | Scene %d | Trial %d failed at step %d.', ...
                             method_name, scene_id, i, step);
                         goal_reached_flag = false;
                         break;
@@ -132,7 +129,7 @@ for m = 1:length(methods)
                 end
 
             catch ME
-                warning('Dynamic | %s | Scene %d | Trial %d error: %s', ...
+                warning('Dynamic | Method: %s | Scene %d | Trial %d error: %s', ...
                     method_name, scene_id, i, ME.message);
                 results.(method_name).dynamic.data(s, i, :) = [NaN, NaN];
                 results.(method_name).dynamic.success(s, i) = 0;
@@ -141,11 +138,11 @@ for m = 1:length(methods)
     end
 end
 
-% === Static maps: statistics ===
+% === Compute and display summary ===
+fprintf('\n====== Summary (Static Maps) ======\n');
 layout_names = {'Manufacturing Cell Layout', 'Amazon Warehouse Layout'};
 layout_ranges = {[34, 35, 36], [37, 38, 39]};
 
-fprintf('\n====== Static Maps Summary ======\n');
 for m = 1:length(methods)
     method_name = methods_names{m};
     data = results.(method_name).static.data;
@@ -157,12 +154,11 @@ for m = 1:length(methods)
     std_length = std(data(:, :, 2), 0, 2, 'omitnan');
     success_rate = sum(success, 2) / num_test;
 
-    fprintf('\n--- [%s] ---\n', method_name);
-
+    fprintf('\n--- %s ---\n', method_name);
     for l = 1:2
         range = layout_ranges{l};
         fprintf('\n[%s]\n', layout_names{l});
-        fprintf('Scene\tSuccess\tTime (mean±std)\tPath Length (mean±std)\n');
+        fprintf('Scene\tSuccess\tTime (mean±std)\tLength (mean±std)\n');
         for scene_id = range
             idx = scene_id - 33;
             fprintf('%2d\t%.2f\t%.2f ± %.2f\t%.2f ± %.2f\n', ...
@@ -173,8 +169,7 @@ for m = 1:length(methods)
     end
 end
 
-% === Dynamic maps: statistics ===
-fprintf('\n====== Dynamic Maps Summary ======\n');
+fprintf('\n====== Summary (Dynamic Maps) ======\n');
 for m = 1:length(methods)
     method_name = methods_names{m};
     data = results.(method_name).dynamic.data;
@@ -186,7 +181,7 @@ for m = 1:length(methods)
     std_dist = std(data(:, :, 2), 0, 2, 'omitnan');
     success_rate = sum(success, 2) / num_test;
 
-    fprintf('\n--- [%s] ---\n', method_name);
+    fprintf('\n--- %s ---\n', method_name);
     fprintf('Scene\tSuccess\tTime (mean±std)\tDistance (mean±std)\n');
     for s = 1:length(scene_ids_dynamic)
         fprintf('%3d\t%.2f\t%.2f ± %.2f\t%.2f ± %.2f\n', ...
@@ -196,6 +191,8 @@ for m = 1:length(methods)
     end
 end
 
-% === Save ===
-save('RRT_StaticAndDynamic_FullBenchmark.mat', 'results');
-fprintf('\n✅ All static and dynamic tests finished. Saved to RRT_StaticAndDynamic_FullBenchmark.mat\n');
+% === Save all results ===
+save('RRT_StaticAndDynamic_allMethods_results.mat', 'results');
+
+fprintf('\n✅ All static and dynamic tests complete.\n');
+fprintf('Results saved to RRT_StaticAndDynamic_allMethods_results.mat\n');

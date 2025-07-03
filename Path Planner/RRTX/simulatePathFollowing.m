@@ -45,7 +45,7 @@ function [final_position, total_time] = simulatePathFollowing(waypoints, start_p
     title('Trajectory - Differential Drive Only');
 
     % Return updated position & time (only 4% of the path forward)
-    step_index = round(length(diffDrivePose) * 0.04);
+    step_index = round(length(diffDrivePose) * 0.1);
     step_index = max(2, min(step_index, length(diffDrivePose)));  % ensure within bounds
     final_position = diffDrivePose(step_index, 1:2);
     total_time = (step_index - 1) * sampleTime;
