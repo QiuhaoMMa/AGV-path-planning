@@ -2,8 +2,8 @@ clc;
 clear;
 close all;
 
-%% === Parameters ===
-scene_id = 102;              % Dynamic obstacle map ID
+% === Parameters ===
+scene_id = 101;              % Dynamic obstacle map ID
 num_steps = 10;              % Number of dynamic steps
 sampleTime = 0.05;           % Simulation time step
 plotting = 0;                % Disable tree plotting
@@ -28,7 +28,7 @@ final_trajectory = current_position;
 
 goal_reached_flag = false;
 
-%% === Main dynamic loop ===
+% === Main dynamic loop ===
 for step = 0:num_steps
     fprintf('Step %d: Dynamic obstacle moving...\n', step);
 
@@ -87,13 +87,13 @@ for step = 0:num_steps
     pause(0.05);
 end
 
-%% === Final results ===
+% === Final results ===
 fprintf('\n=== AGV Dynamic Single Run Summary ===\n');
 fprintf('Total time used:      %.2f s\n', total_time);
 fprintf('Total distance moved: %.2f units\n', total_distance);
 fprintf('Final position:       (%.2f, %.2f)\n', current_position(1), current_position(2));
 
-%% === Show full trajectory playback ===
+% === Show full trajectory playback ===
 if size(final_trajectory, 1) > 1
     figure;
     environment = createScene(scene_id, false, step);  % Last frame

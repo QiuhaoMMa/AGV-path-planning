@@ -68,6 +68,7 @@ for m = 1:length(methods)
     end
 
     % Dynamic maps
+    % === Dynamic maps ===
     for s = 1:length(scene_ids_dynamic)
         scene_id = scene_ids_dynamic(s);
         for i = 1:num_test
@@ -89,7 +90,7 @@ for m = 1:length(methods)
                         break;
                     end
 
-                    % For dynamic scenes use higher memory, higher resolution, with retry
+                    % Dynamic: stronger settings + retry
                     rrt = method(environment, ...
                         'memory_allocation', 5000, ...
                         'steering_resolution', 0.1);
@@ -108,7 +109,8 @@ for m = 1:length(methods)
                         path_indices = rrt.reconstructPath();
                         positions = vertcat(rrt.nodes(path_indices).position);
 
-                        [next_position, step_time] = simulatePathFollowing(positions, current_position, sampleTime);
+                        % Partial follow: smoother step
+                        [next_position, step_time] = simulatePathFollowing(positions, current_position, sampleTime, 0.15);
                         step_distance = norm(next_position - current_position);
 
                         current_position = next_position;
@@ -140,6 +142,7 @@ for m = 1:length(methods)
         end
     end
 end
+
 
 % === Static maps: statistics ===
 layout_names = {'Manufacturing Cell Layout', 'Amazon Warehouse Layout'};
